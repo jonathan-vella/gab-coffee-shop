@@ -1,0 +1,120 @@
+@page
+@model AmsterdamCoffeeShop.Pages.CheckoutModel
+@{
+    ViewData["Title"] = "Checkout";
+}
+
+<h1 class="mb-4">Checkout</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Your Information</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Customer.FirstName" class="form-label">First Name</label>
+                            <input asp-for="Customer.FirstName" class="form-control" />
+                            <span asp-validation-for="Customer.FirstName" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Customer.LastName" class="form-label">Last Name</label>
+                            <input asp-for="Customer.LastName" class="form-control" />
+                            <span asp-validation-for="Customer.LastName" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Customer.Email" class="form-label">Email Address</label>
+                        <input asp-for="Customer.Email" class="form-control" />
+                        <span asp-validation-for="Customer.Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Customer.Username" class="form-label">Username (for your account)</label>
+                        <input asp-for="Customer.Username" class="form-control" />
+                        <span asp-validation-for="Customer.Username" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="DeliveryAddress" class="form-label">Delivery Address</label>
+                        <textarea asp-for="DeliveryAddress" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="DeliveryAddress" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" asp-for="SaveAddress">
+                        <label class="form-check-label" asp-for="SaveAddress">
+                            Save this as my preferred delivery address
+                        </label>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" asp-for="Customer.MarketingPreference">
+                        <label class="form-check-label" asp-for="Customer.MarketingPreference">
+                            I would like to receive marketing information about products and promotions
+                        </label>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">Place Order</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Order Summary</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.CartItems.Any())
+                {
+                    <ul class="list-group list-group-flush mb-4">
+                        @foreach (var item in Model.CartItems)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="fw-bold">@item.Product.Name</span><br />
+                                    <small>€@item.Product.Price.ToString("0.00") × @item.Quantity</small>
+                                </div>
+                                <span class="fw-bold">€@((item.Product.Price * item.Quantity).ToString("0.00"))</span>
+                            </li>
+                        }
+                    </ul>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <span>€@Model.CartTotal.ToString("0.00")</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Delivery:</span>
+                        <span>€@Model.DeliveryFee.ToString("0.00")</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between fw-bold mb-0">
+                        <span>Total:</span>
+                        <span>€@((Model.CartTotal + Model.DeliveryFee).ToString("0.00"))</span>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-center mb-0">Your cart is empty</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

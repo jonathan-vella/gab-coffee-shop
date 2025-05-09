@@ -1,0 +1,121 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Amsterdam Coffee Experience</title>
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/AmsterdamCoffeeShop.styles.css" asp-append-version="true" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark border-bottom box-shadow">
+            <div class="container">
+                <a class="navbar-brand" asp-area="" asp-page="/Index">
+                    <img src="/images/coffee-logo.png" alt="Amsterdam Coffee Experience" height="40" class="d-inline-block align-text-top me-2">
+                    Amsterdam Coffee
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-light" asp-area="" asp-page="/Index">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-light" asp-area="" asp-page="/Order">Order Coffee</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-light" asp-area="" asp-page="/Privacy">Privacy</a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            @{
+                                var cartItems = Context.Session.Get<List<CartItem>>("Cart");
+                                var itemCount = cartItems?.Count ?? 0;
+                            }
+                            <a class="nav-link text-light position-relative" asp-area="" asp-page="/Order">
+                                <i class="bi bi-cart3" style="font-size: 1.2rem;"></i>
+                                @if (itemCount > 0)
+                                {
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                        @itemCount
+                                    </span>
+                                }
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    
+    <main role="main" class="pb-3">
+        @RenderBody()
+    </main>
+
+    <footer class="footer bg-dark text-white py-5 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5>Amsterdam Coffee Experience</h5>
+                    <p>Bringing the rich tradition of Amsterdam's finest coffee direct to your door.</p>
+                    <p>Prins Hendrikkade 123<br>1011 Amsterdam, Netherlands</p>
+                </div>
+                <div class="col-md-2 mb-4 mb-md-0">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a class="text-white-50" asp-page="/Index">Home</a></li>
+                        <li><a class="text-white-50" asp-page="/Order">Order Coffee</a></li>
+                        <li><a class="text-white-50" asp-page="/Privacy">Privacy</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4 mb-md-0">
+                    <h5>Contact Us</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="bi bi-telephone me-2"></i> +31 20 123 4567</li>
+                        <li><i class="bi bi-envelope me-2"></i> info@amsterdamcoffee.com</li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>Follow Us</h5>
+                    <div class="d-flex">
+                        <a href="#" class="text-white me-3" style="font-size: 1.5rem;"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="text-white me-3" style="font-size: 1.5rem;"><i class="bi bi-instagram"></i></a>
+                        <a href="#" class="text-white" style="font-size: 1.5rem;"><i class="bi bi-twitter"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="mt-4 mb-3" style="background-color: #555;">
+            <div class="row">
+                <div class="col-md-6 text-center text-md-start">
+                    &copy; 2025 - Amsterdam Coffee Experience - All rights reserved
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <a class="text-white-50" asp-page="/Privacy">Privacy Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,76 @@
+@page
+@model AmsterdamCoffeeShop.Pages.OrderModel
+@{
+    ViewData["Title"] = "Order Coffee";
+}
+
+<h1 class="mb-4">Order Your Favorite Coffee</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="row mb-4">
+            @foreach (var product in Model.Products)
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <img src="@product.ImageUrl" class="card-img-top" alt="@product.Name">
+                        <div class="card-body">
+                            <h5 class="card-title">@product.Name</h5>
+                            <p class="card-text">@product.Description</p>
+                            <p class="fw-bold">€@product.Price.ToString("0.00")</p>
+                        </div>
+                        <div class="card-footer bg-white border-top-0">
+                            <form method="post" asp-page-handler="AddToCart">
+                                <input type="hidden" name="productId" value="@product.Id" />
+                                <div class="input-group mb-3">
+                                    <input type="number" class="form-control" name="quantity" value="1" min="1" max="10">
+                                    <button class="btn btn-outline-primary" type="submit">Add to Cart</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Your Order</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.CartItems.Any())
+                {
+                    <ul class="list-group list-group-flush mb-4">
+                        @foreach (var item in Model.CartItems)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="fw-bold">@item.Product.Name</span><br/>
+                                    <small>€@item.Product.Price.ToString("0.00") × @item.Quantity</small>
+                                </div>
+                                <span class="fw-bold">€@((item.Product.Price * item.Quantity).ToString("0.00"))</span>
+                                <form method="post" asp-page-handler="RemoveFromCart">
+                                    <input type="hidden" name="productId" value="@item.Product.Id" />
+                                    <button type="submit" class="btn btn-sm btn-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </li>
+                        }
+                    </ul>
+                    <div class="d-flex justify-content-between fw-bold mb-4">
+                        <span>Total:</span>
+                        <span>€@Model.CartTotal.ToString("0.00")</span>
+                    </div>
+                    <a asp-page="/Checkout" class="btn btn-success w-100">Proceed to Checkout</a>
+                }
+                else
+                {
+                    <p class="text-center mb-0">Your cart is empty</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>

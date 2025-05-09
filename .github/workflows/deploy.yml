@@ -1,0 +1,107 @@
+name: Build and Deploy
+
+on:
+  #push:
+    #branches: [ main ]
+  #pull_request:
+    #branches: [ main ]
+  workflow_dispatch:
+
+env:
+  AZURE_RESOURCE_GROUP: amsterdam-coffee-rg
+  PROJECT_NAME: amsterdamcoffee
+  ENVIRONMENT: prod
+  DOTNET_VERSION: '9.0.x'
+  WORKING_DIRECTORY: 'AmsterdamCoffeeShop'
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+    
+    - name: Test
+      run: dotnet test --configuration Release --no-build --verbosity normal
+    
+    - name: Publish
+      run: dotnet publish "${{ env.WORKING_DIRECTORY }}" --configuration Release --output ./publish --no-build
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: webapp
+        path: ./publish
+
+  deploy-infra:
+    name: Deploy Infrastructure
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Deploy Bicep
+      uses: azure/arm-deploy@v1
+      with:
+        resourceGroupName: ${{ env.AZURE_RESOURCE_GROUP }}
+        template: ./infra/main.bicep
+        parameters: >
+          projectName=${{ env.PROJECT_NAME }}
+          environment=${{ env.ENVIRONMENT }}
+          sqlAdministratorLogin=${{ secrets.SQL_ADMIN_USERNAME }}
+          sqlAdministratorPassword=${{ secrets.SQL_ADMIN_PASSWORD }}
+    
+    - name: Get Web App Name
+      uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          echo "WEBAPP_NAME=$(az webapp list --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --query "[?contains(name, '${{ env.PROJECT_NAME }}')].name" -o tsv)" >> $GITHUB_ENV
+    
+  deploy-app:
+    name: Deploy Application
+    needs: deploy-infra
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: webapp
+        path: ./publish
+    
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Get Web App Name
+      uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          echo "WEBAPP_NAME=$(az webapp list --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --query "[?contains(name, '${{ env.PROJECT_NAME }}')].name" -o tsv)" >> $GITHUB_ENV
+    
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ env.WEBAPP_NAME }}
+        package: ./publish
