@@ -71,11 +71,13 @@ jobs:
           sqlAdministratorPassword=${{ secrets.SQL_ADMIN_PASSWORD }}
     
     - name: Get Web App Name
+      id: get-webapp-name
       uses: azure/CLI@v1
       with:
         inlineScript: |
-          echo "WEBAPP_NAME=$(az webapp list --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --query "[?contains(name, '${{ env.PROJECT_NAME }}')].name" -o tsv)" >> $GITHUB_ENV
-    
+          WEBAPP_NAME=$(az webapp list --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --query "[?contains(name, '${{ env.PROJECT_NAME }}')].name" -o tsv)
+          echo "webappName=$WEBAPP_NAME" >> $GITHUB_OUTPUT
+
   deploy-app:
     name: Deploy Application
     needs: deploy-infra
@@ -95,13 +97,15 @@ jobs:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
     
     - name: Get Web App Name
+      id: get-webapp-name
       uses: azure/CLI@v1
       with:
         inlineScript: |
-          echo "WEBAPP_NAME=$(az webapp list --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --query "[?contains(name, '${{ env.PROJECT_NAME }}')].name" -o tsv)" >> $GITHUB_ENV
+          WEBAPP_NAME=$(az webapp list --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --query "[?contains(name, '${{ env.PROJECT_NAME }}')].name" -o tsv)
+          echo "webappName=$WEBAPP_NAME" >> $GITHUB_OUTPUT
     
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v2
       with:
-        app-name: ${{ env.WEBAPP_NAME }}
+        app-name: ${{ steps.get-webapp-name.outputs.webappName }}
         package: ./publish
